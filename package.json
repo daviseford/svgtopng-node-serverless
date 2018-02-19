@@ -1,0 +1,23 @@
+{
+  "name": "svgtopng-node-serverless",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daviseford/svgtopng-node-serverless.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/daviseford/svgtopng-node-serverless/issues"
+  },
+  "homepage": "https://github.com/daviseford/svgtopng-node-serverless#readme",
+  "devDependencies": {
+    "svg2img": "^0.2.8"
+  }
+}
