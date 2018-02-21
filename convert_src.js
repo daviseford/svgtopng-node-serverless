@@ -1,13 +1,13 @@
 require("babel-polyfill");
 const AWS = require('aws-sdk');
-const path = require('path');
-const fs = require('fs');
-
-const gm = require('gm').subClass({imageMagick: true});
+const sharp = require('sharp');
 const s3 = new AWS.S3();
 const Converter = {};
 
 const opts = {
+  resize: {
+    min_width: 2000
+  },
   src: {
     bucket: 'word-art-svgs'
   },
@@ -19,64 +19,46 @@ const opts = {
 Converter.getFileName = (url) => url.substring(url.lastIndexOf('/') + 1);
 Converter.convertFilename = (filename) => filename.replace(/.svg$/g, '.png');
 
-Converter.downloadImage = params =>
-    new Promise((resolve, reject) => {
-      console.log('downloadImage start...');
-      const destPath = path.join('/tmp', params.Key);
-      s3.getObject(params).promise()
-          .then((data) => {
-            fs.writeFileSync(destPath, data.Body);
-            return resolve(destPath);
-          })
-          .catch(err => reject(err));
-    })
-;
-
-Converter.imageInfo = imagePath => {
+Converter.downloadImage = params => {
   return new Promise((resolve, reject) => {
-    console.log('imageInfo start...');
-    gm(imagePath)
-        .identify((err, info) => {
-          if (err) {
-            console.log('Error in imageInfo: ', err)
-            return reject(err);
-          }
-          console.log('Source image info: %j', info);
-          return resolve(info);
-        });
+    console.log('downloadImage start...');
+    s3.getObject(params).promise()
+        .then((data) => resolve(data.Body))
+        .catch(err => reject(err));
   });
 };
 
-Converter.resizeImage = (imagePath, info, bg_color) => {
+Converter.resizeImage = (buffer, bg_color) => {
   return new Promise((resolve, reject) => {
     console.log('resizeImage start...');
     if (bg_color) {
-      gm(imagePath)
+      sharp(buffer)
+          .resize(opts.resize.min_width)
+          .withoutEnlargement()
           .background(bg_color)
-          .density(500)
-          .execute(2000)
-          .toBuffer(info.format, (err, buffer) => (
+          .flatten()
+          .toBuffer((err, buffer, info) => (
               err ? reject(err) : resolve(buffer)
           ));
     } else {
-      gm(imagePath)
-          .density(500)
-          .execute(2000)
-          .toBuffer(info.format, (err, buffer) => (
+      sharp(buffer)
+          .resize(opts.resize.min_width)
+          .withoutEnlargement()
+          .toBuffer((err, buffer, info) => (
               err ? reject(err) : resolve(buffer)
           ));
     }
   });
 };
 
-Converter.uploadImage = (buffer, info) => {
+Converter.uploadImage = (buffer, filename) => {
   return new Promise((resolve, reject) => {
     console.log('uploadImage start...');
     const params = {
       Bucket: opts.dest.bucket,
-      Key: `${opts.dest.bucket}/${Converter.convertFilename(info["Base filename"])}`,
+      Key: filename,
       Body: buffer,
-      ContentType: info['Mime type'],
+      ContentType: 'image/png',
       StorageClass: 'REDUCED_REDUNDANCY',
       ACL: 'public-read',
     };
@@ -90,35 +72,40 @@ Converter.uploadImage = (buffer, info) => {
 
 Converter.execute = async (image_url, bg_color = null) => {
   try {
-    const image_path = await Converter.downloadImage({
+    console.log(image_url, bg_color)
+    const src_filename = Converter.getFileName(image_url)
+    const dest_filename = Converter.convertFilename(src_filename)
+    const src_buffer = await Converter.downloadImage({
       Bucket: opts.src.bucket,
       Key: Converter.getFileName(image_url)
     });
-    const info = await Converter.imageInfo(image_path);
-    const imageBuffer = await Converter.resizeImage(image_path, info, bg_color);
-    const result = await Converter.uploadImage(imageBuffer, info);
+    const dest_buffer = await Converter.resizeImage(src_buffer, bg_color)
+    const result = await Converter.uploadImage(dest_buffer, dest_filename);
     return result
   } catch (e) {
     return e
   }
 };
 
+// Uncomment to test locally
+// Converter.execute('https://s3.amazonaws.com/word-art-svgs/2134198821169.svg', '#000')
+//     .then(r => console.log(r))
+//     .catch(e => console.log(e))
 
 module.exports.convert = (event, context, callback) => {
   const data = JSON.parse(event.body) || {};
   const src_url = data.url || '';
   const bg_color = data.bg_color || null;
-  console.log(JSON.parse(event.body))
 
   Converter.execute(src_url, bg_color)
-      .then(url => {
+      .then(res => {
         const response = {
           statusCode: 200,
           body: JSON.stringify({
-            message: 'Your png was successfully generated',
-            input_params: JSON.parse(event.body),
+            message: 'Your .png file was successfully generated',
+            input_params: data,
             svg_url: src_url,
-            png_url: url
+            png_url: res.Location
           })
         };
         return callback(null, response)
