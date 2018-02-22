@@ -80,39 +80,41 @@ Converter.execute = function () {
         switch (_context.prev = _context.next) {
           case 0:
             _context.prev = 0;
+
+            console.log(image_url, bg_color);
             src_filename = Converter.getFileName(image_url);
             dest_filename = Converter.convertFilename(src_filename);
-            _context.next = 5;
+            _context.next = 6;
             return Converter.downloadImage({
               Bucket: opts.src.bucket,
               Key: Converter.getFileName(image_url)
             });
 
-          case 5:
+          case 6:
             src_buffer = _context.sent;
-            _context.next = 8;
+            _context.next = 9;
             return Converter.resizeImage(src_buffer, bg_color);
 
-          case 8:
+          case 9:
             dest_buffer = _context.sent;
-            _context.next = 11;
+            _context.next = 12;
             return Converter.uploadImage(dest_buffer, dest_filename);
 
-          case 11:
+          case 12:
             result = _context.sent;
             return _context.abrupt('return', result);
 
-          case 15:
-            _context.prev = 15;
+          case 16:
+            _context.prev = 16;
             _context.t0 = _context['catch'](0);
             return _context.abrupt('return', _context.t0);
 
-          case 18:
+          case 19:
           case 'end':
             return _context.stop();
         }
       }
-    }, _callee, undefined, [[0, 15]]);
+    }, _callee, undefined, [[0, 16]]);
   }));
 
   return function (_x2) {
@@ -130,14 +132,18 @@ module.exports.convert = function (event, context, callback) {
   var src_url = data.url || '';
   var bg_color = data.bg_color || null;
 
-  Converter.execute(src_url, bg_color).then(function (url) {
+  Converter.execute(src_url, bg_color).then(function (res) {
     var response = {
       statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true
+      },
       body: JSON.stringify({
         message: 'Your .png file was successfully generated',
         input_params: data,
         svg_url: src_url,
-        png_url: url
+        png_url: res.Location
       })
     };
     return callback(null, response);

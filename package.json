@@ -2,7 +2,7 @@
   "name": "svgtopng-node-serverless",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "convert.js",
   "scripts": {
     "sharpfix": "rm -rf node_modules/sharp && docker run -v \"$PWD\":/var/task lambci/lambda:build-nodejs6.10 npm install",
     "babelify": "rm -f convert.js && npx babel convert_src.js --presets \"$(npm -g root)/babel-preset-env\" --out-file convert.js",
