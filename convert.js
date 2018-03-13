@@ -42,11 +42,11 @@ Converter.resizeImage = function (buffer, bg_color) {
   return new Promise(function (resolve, reject) {
     console.log('resizeImage start...');
     if (bg_color) {
-      sharp(buffer).resize(opts.resize.min_width).withoutEnlargement().background(bg_color).flatten().toBuffer(function (err, buffer, info) {
+      sharp(buffer).resize(opts.resize.min_width).withoutEnlargement().background(bg_color).flatten().rotate(90).toBuffer(function (err, buffer, info) {
         return err ? reject(err) : resolve(buffer);
       });
     } else {
-      sharp(buffer).resize(opts.resize.min_width).withoutEnlargement().toBuffer(function (err, buffer, info) {
+      sharp(buffer).resize(opts.resize.min_width).withoutEnlargement().rotate(90).toBuffer(function (err, buffer, info) {
         return err ? reject(err) : resolve(buffer);
       });
     }

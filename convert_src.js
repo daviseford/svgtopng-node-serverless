@@ -37,6 +37,7 @@ Converter.resizeImage = (buffer, bg_color) => {
           .withoutEnlargement()
           .background(bg_color)
           .flatten()
+          .rotate(90)
           .toBuffer((err, buffer, info) => (
               err ? reject(err) : resolve(buffer)
           ));
@@ -44,6 +45,7 @@ Converter.resizeImage = (buffer, bg_color) => {
       sharp(buffer)
           .resize(opts.resize.min_width)
           .withoutEnlargement()
+          .rotate(90)
           .toBuffer((err, buffer, info) => (
               err ? reject(err) : resolve(buffer)
           ));
