@@ -10,7 +10,7 @@ var Converter = {};
 
 var opts = {
   resize: {
-    min_width: 2000
+    min_width: 3000
   },
   src: {
     bucket: 'word-art-svgs'
