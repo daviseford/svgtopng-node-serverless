@@ -2,7 +2,7 @@ service: svgtopng-node
 
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs10.x
   stage: dev
   region: us-east-1
   cors: true
