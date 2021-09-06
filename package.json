@@ -1,12 +1,11 @@
 {
   "name": "svgtopng-node-serverless",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "",
   "main": "convert.js",
   "scripts": {
-    "sharpfix": "rm -rf node_modules/sharp && docker run -v \"$PWD\":/var/task lambci/lambda:build-nodejs6.10 npm install",
-    "babelify": "rm -f convert.js && npx babel convert_src.js --presets \"$(npm -g root)/babel-preset-env\" --out-file convert.js",
-    "deploy": "npm run sharpfix && npm run babelify && sls deploy",
+    "sharpfix": "npm install --platform=linux --arch=x64 sharp",
+    "deploy": "npm run sharpfix && sls deploy",
     "serve": "npm run deploy && sls logs -f save --tail",
     "debug": "SLS_DEBUG=* npm run deploy && sls logs -f save --tail",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -23,10 +22,13 @@
   },
   "homepage": "https://github.com/daviseford/svgtopng-node-serverless#readme",
   "dependencies": {
-    "@types/node": "^9.4.6",
-    "aws-sdk": "^2.197.0",
-    "babel-polyfill": "^6.26.0",
-    "sharp": "^0.19.0"
+    "@types/node": "9.4.6",
+    "aws-sdk": "2.983.0",
+    "babel-polyfill": "6.26.0",
+    "sharp": "^0.29.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0"
+  }
 }
